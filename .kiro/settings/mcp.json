@@ -19,7 +19,7 @@
         "-y",
         "mongodb-mcp-server",
         "--connectionString",
-        "mongodb+srv://leultesfaye0755:0poA5BKzH1V8418L@cluster0.11dlebf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+        "mongodb+srv://leul0755:sDKKOVuMNdpUte7G@cluster0.11dlebf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
       ],
       "env": {},
       "disabled": false,

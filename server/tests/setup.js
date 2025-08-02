@@ -1,26 +1,38 @@
-// Global test setup
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
 
-// Increase timeout for database operations
-jest.setTimeout(30000);
+let mongoServer;
 
-// Suppress console.log during tests unless explicitly needed
-const originalConsoleLog = console.log;
-const originalConsoleError = console.error;
-
-beforeAll(() => {
-  console.log = jest.fn();
-  console.error = jest.fn();
+// Setup before all tests
+beforeAll(async () => {
+  // Start in-memory MongoDB instance
+  mongoServer = await MongoMemoryServer.create();
+  const mongoUri = mongoServer.getUri();
+  
+  // Connect to the in-memory database
+  await mongoose.connect(mongoUri);
 });
 
-afterAll(() => {
-  console.log = originalConsoleLog;
-  console.error = originalConsoleError;
-});
-
-// Clean up any remaining connections after all tests
-afterAll(async () => {
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
+// Cleanup after each test
+afterEach(async () => {
+  // Clear all collections
+  const collections = mongoose.connection.collections;
+  for (const key in collections) {
+    const collection = collections[key];
+    await collection.deleteMany({});
   }
 });
+
+// Cleanup after all tests
+afterAll(async () => {
+  // Close database connection
+  await mongoose.connection.dropDatabase();
+  await mongoose.connection.close();
+  
+  // Stop the in-memory MongoDB instance
+  await mongoServer.stop();
+});
+
+// Set test environment variables
+process.env.JWT_SECRET = 'test-jwt-secret-key';
+process.env.NODE_ENV = 'test';
