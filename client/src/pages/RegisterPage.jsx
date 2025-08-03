@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
@@ -10,15 +10,29 @@ const RegisterPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'Student',
+    role: '',
     studentId: '',
     teacherCredentials: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
   
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const roleRedirects = {
+        'Student': '/student/dashboard',
+        'Teacher': '/teacher/dashboard',
+        'Admin': '/admin/dashboard'
+      };
+      const redirectPath = roleRedirects[user.role] || '/';
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,21 +40,50 @@ const RegisterPage = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear errors when user starts typing
     setLocalError('');
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setLocalError('Passwords do not match');
-      return false;
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = 'Full name is required';
+    } else if (formData.name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters long';
     }
     
-    if (formData.password.length < 6) {
-      setLocalError('Password must be at least 6 characters long');
-      return false;
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
     }
     
-    return true;
+    if (!formData.password.trim()) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters long';
+    }
+    
+    if (!formData.confirmPassword.trim()) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (!formData.role) {
+      errors.role = 'Please select a role';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -103,7 +146,13 @@ const RegisterPage = () => {
             </div>
           )}
           
-          <form onSubmit={handleSubmit} className="register-form">
+          {Object.keys(validationErrors).length > 0 && (
+            <div className="error-message">
+              Please fix the errors below
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit} className="register-form" role="form">
             <div className="form-group">
               <label htmlFor="name">Full Name</label>
               <input
@@ -114,7 +163,14 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                className={validationErrors.name ? 'error' : ''}
+                aria-describedby={validationErrors.name ? 'name-error' : undefined}
               />
+              {validationErrors.name && (
+                <div id="name-error" className="field-error">
+                  {validationErrors.name}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
@@ -127,7 +183,14 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                className={validationErrors.email ? 'error' : ''}
+                aria-describedby={validationErrors.email ? 'email-error' : undefined}
               />
+              {validationErrors.email && (
+                <div id="email-error" className="field-error">
+                  {validationErrors.email}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
@@ -139,10 +202,18 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                className={validationErrors.role ? 'error' : ''}
+                aria-describedby={validationErrors.role ? 'role-error' : undefined}
               >
+                <option value="">Select a role</option>
                 <option value="Student">Student</option>
                 <option value="Teacher">Teacher</option>
               </select>
+              {validationErrors.role && (
+                <div id="role-error" className="field-error">
+                  {validationErrors.role}
+                </div>
+              )}
             </div>
             
             {formData.role === 'Student' && (
@@ -183,7 +254,14 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                className={validationErrors.password ? 'error' : ''}
+                aria-describedby={validationErrors.password ? 'password-error' : undefined}
               />
+              {validationErrors.password && (
+                <div id="password-error" className="field-error">
+                  {validationErrors.password}
+                </div>
+              )}
             </div>
             
             <div className="form-group">
@@ -196,7 +274,14 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
                 disabled={isLoading}
+                className={validationErrors.confirmPassword ? 'error' : ''}
+                aria-describedby={validationErrors.confirmPassword ? 'confirm-password-error' : undefined}
               />
+              {validationErrors.confirmPassword && (
+                <div id="confirm-password-error" className="field-error">
+                  {validationErrors.confirmPassword}
+                </div>
+              )}
             </div>
             
             <button 

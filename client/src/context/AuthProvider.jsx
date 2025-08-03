@@ -64,43 +64,71 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated on app load
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    
-    if (token && user) {
-      try {
-        const parsedUser = JSON.parse(user);
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: {
-            user: parsedUser,
-            token: token
+    const initializeAuth = () => {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      
+      if (token && user) {
+        try {
+          const parsedUser = JSON.parse(user);
+          
+          // Validate token format (basic check)
+          if (token.split('.').length === 3) {
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: {
+                user: parsedUser,
+                token: token
+              }
+            });
+          } else {
+            throw new Error('Invalid token format');
           }
-        });
-      } catch {
-        // Invalid stored data, clear it
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        } catch (error) {
+          console.warn('Invalid stored authentication data:', error);
+          // Invalid stored data, clear it
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          dispatch({ type: 'LOGOUT' });
+        }
       }
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (userData, token) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    dispatch({
-      type: 'LOGIN_SUCCESS',
-      payload: {
-        user: userData,
-        token: token
+    try {
+      // Validate inputs
+      if (!userData || !token) {
+        throw new Error('Invalid login data');
       }
-    });
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      dispatch({
+        type: 'LOGIN_SUCCESS',
+        payload: {
+          user: userData,
+          token: token
+        }
+      });
+    } catch (error) {
+      console.error('Login failed:', error);
+      setError('Login failed. Please try again.');
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    dispatch({ type: 'LOGOUT' });
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      dispatch({ type: 'LOGOUT' });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout even if localStorage fails
+      dispatch({ type: 'LOGOUT' });
+    }
   };
 
   const setLoading = (loading) => {

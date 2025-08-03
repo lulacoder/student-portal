@@ -114,6 +114,18 @@ button:focus-visible {
   margin-bottom: 1rem;
 }
 
+.field-error {
+  color: var(--error-color);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+  border-color: var(--error-color);
+}
+
 /* Success message styles */
 .success-message {
   background-color: var(--success-color);

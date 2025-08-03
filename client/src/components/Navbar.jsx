@@ -1,14 +1,9 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import LogoutButton from './LogoutButton';
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const { isAuthenticated, user } = useAuth();
 
   const getRoleBasedLinks = () => {
     if (!user) return [];
@@ -63,9 +58,7 @@ const Navbar = () => {
               <span className="user-info">
                 Welcome, {user?.name} ({user?.role})
               </span>
-              <button onClick={handleLogout} className="logout-btn">
-                Logout
-              </button>
+              <LogoutButton />
             </div>
           </div>
         ) : (
