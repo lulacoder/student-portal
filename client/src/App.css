@@ -233,47 +233,6 @@
 .register-form-wrapper {
   background-color: rgba(255, 255, 255, 0.05);
   padding: 2rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-}
-
-.login-form-wrapper h2,
-.register-form-wrapper h2 {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: var(--primary-color);
-}
-
-.login-form,
-.register-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.login-button,
-.register-button {
-  width: 100%;
-  padding: 1rem;
-  font-size: 1.1rem;
-  margin-top: 1rem;
-}
-
-.login-footer,
-.register-footer {
-  text-align: center;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-/* Dashboard Styles */
-.dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.dashboard-header {
-  margin-bottom: 3rem;
   text-align: center;
 }
 
@@ -463,47 +422,12 @@
   .main-content {
     padding: 1rem;
   }
-  
-  .navbar-container {
-    padding: 0 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .navbar-content {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .navbar-nav {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .hero-section h1 {
-    font-size: 2rem;
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .footer-content {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .cta-buttons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .not-found-actions {
-    flex-direction: column;
-    align-items: center;
-  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
 }
