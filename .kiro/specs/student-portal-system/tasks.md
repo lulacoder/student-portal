@@ -76,7 +76,12 @@
   - Write tests for assignment creation, submission, and file handling
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 6. Implement grading and feedback system
+- [x] 6. Implement grading and feedback system
+
+
+
+
+
   - Create grading endpoints for teachers to score submissions
   - Build feedback system for teacher comments on student work
   - Implement grade calculation and storage

@@ -18,7 +18,11 @@ import {
   deleteAssignment,
   submitAssignment,
   getAssignmentSubmissions,
-  gradeSubmission
+  gradeSubmission,
+  bulkGradeSubmissions,
+  getStudentGrades,
+  getCourseGradebook,
+  getSubmissionDetails
 } from '../../controllers/assignmentController.js';
 import { connectDB, closeDB, clearDB } from '../setup.js';
 
@@ -48,7 +52,8 @@ describe('Assignment Controller', () => {
       name: 'Test Teacher',
       email: 'teacher@test.com',
       password: 'password123',
-      role: 'Teacher'
+      role: 'Teacher',
+      teacherCredentials: 'PhD in Computer Science'
     });
     await teacher.save();
 
@@ -56,7 +61,8 @@ describe('Assignment Controller', () => {
       name: 'Test Student',
       email: 'student@test.com',
       password: 'password123',
-      role: 'Student'
+      role: 'Student',
+      studentId: 'STU001'
     });
     await student.save();
 
@@ -100,21 +106,41 @@ describe('Assignment Controller', () => {
     next();
   };
 
-  // Setup test routes
-  app.get('/assignments/course/:courseId', mockAuth(teacher), getAssignmentsByCourse);
-  app.get('/assignments/:id', mockAuth(teacher), getAssignment);
-  app.post('/assignments', mockAuth(teacher), createAssignment);
-  app.put('/assignments/:id', mockAuth(teacher), updateAssignment);
-  app.delete('/assignments/:id', mockAuth(teacher), deleteAssignment);
-  app.post('/assignments/:id/submit', mockAuth(student), submitAssignment);
-  app.get('/assignments/:id/submissions', mockAuth(teacher), getAssignmentSubmissions);
-  app.put('/assignments/submission/:submissionId/grade', mockAuth(teacher), gradeSubmission);
+  // Setup test routes with proper middleware handling
+  const setupRoute = (method, path, handler) => {
+    app[method](path, (req, res, next) => {
+      // Dynamic auth based on token
+      if (req.headers.authorization === teacherToken) {
+        return mockAuth(teacher)(req, res, next);
+      } else if (req.headers.authorization === studentToken) {
+        return mockAuth(student)(req, res, next);
+      } else if (req.headers.authorization === adminToken) {
+        return mockAuth(admin)(req, res, next);
+      } else {
+        return mockAuth(teacher)(req, res, next); // Default fallback
+      }
+    }, handler);
+  };
+
+  setupRoute('get', '/api/assignments/course/:courseId', getAssignmentsByCourse);
+  setupRoute('get', '/api/assignments/:id', getAssignment);
+  setupRoute('post', '/api/assignments', createAssignment);
+  setupRoute('put', '/api/assignments/:id', updateAssignment);
+  setupRoute('delete', '/api/assignments/:id', deleteAssignment);
+  setupRoute('post', '/api/assignments/:id/submit', submitAssignment);
+  setupRoute('get', '/api/assignments/:id/submissions', getAssignmentSubmissions);
+  setupRoute('put', '/api/assignments/submission/:submissionId/grade', gradeSubmission);
+  setupRoute('put', '/api/assignments/assignment/:assignmentId/bulk-grade', bulkGradeSubmissions);
+  setupRoute('get', '/api/assignments/student/:studentId/grades', getStudentGrades);
+  setupRoute('get', '/api/assignments/course/:courseId/gradebook', getCourseGradebook);
+  setupRoute('get', '/api/assignments/submission/:submissionId', getSubmissionDetails);
 
   describe('GET /assignments/course/:courseId', () => {
 
     test('should get assignments for course as teacher', async () => {
       const response = await request(app)
-        .get(`/assignments/course/${course._id}`);
+        .get(`/api/assignments/course/${course._id}`)
+        .set('Authorization', teacherToken);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -138,7 +164,8 @@ describe('Assignment Controller', () => {
         name: 'Other Student',
         email: 'other@test.com',
         password: 'password123',
-        role: 'Student'
+        role: 'Student',
+        studentId: 'STU002'
       });
       await otherStudent.save();
 
@@ -301,7 +328,7 @@ describe('Assignment Controller', () => {
     });
 
     test('should mark late submission', async () => {
-      // Create assignment with past due date
+      // Create assignment with past due date (bypass validation for testing)
       const pastAssignment = new Assignment({
         title: 'Past Assignment',
         description: 'Past assignment description',
@@ -309,7 +336,8 @@ describe('Assignment Controller', () => {
         dueDate: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
         pointValue: 100
       });
-      await pastAssignment.save();
+      // Save without validation to allow past due date for testing
+      await pastAssignment.save({ validateBeforeSave: false });
 
       const submissionData = {
         submissionText: 'Late submission'
@@ -349,7 +377,8 @@ describe('Assignment Controller', () => {
         name: 'Other Student',
         email: 'other@test.com',
         password: 'password123',
-        role: 'Student'
+        role: 'Student',
+        studentId: 'STU003'
       });
       await otherStudent.save();
 
@@ -526,6 +555,361 @@ describe('Assignment Controller', () => {
 
       expect(response.status).toBe(403);
       expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('Enhanced Grading System Tests', () => {
+    let submission1, submission2, assignment2;
+
+    beforeEach(async () => {
+      // Create additional assignment
+      assignment2 = new Assignment({
+        title: 'Second Assignment',
+        description: 'Second assignment description',
+        course: course._id,
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        pointValue: 50
+      });
+      await assignment2.save();
+
+      // Create test submissions
+      submission1 = new Submission({
+        assignment: assignment._id,
+        student: student._id,
+        submissionText: 'First submission',
+        submittedAt: new Date(),
+        isLate: false
+      });
+      await submission1.save();
+
+      submission2 = new Submission({
+        assignment: assignment2._id,
+        student: student._id,
+        submissionText: 'Second submission',
+        submittedAt: new Date(),
+        isLate: false
+      });
+      await submission2.save();
+    });
+
+    describe('Enhanced gradeSubmission', () => {
+      beforeEach(() => {
+        app.use((req, res, next) => {
+          if (req.headers.authorization === teacherToken) {
+            return mockAuth(teacher)(req, res, next);
+          }
+          next();
+        });
+      });
+
+      test('should calculate grade percentage and letter grade', async () => {
+        const gradeData = {
+          grade: 85,
+          feedback: 'Good work!'
+        };
+
+        const response = await request(app)
+          .put(`/assignments/submission/${submission1._id}/grade`)
+          .set('Authorization', teacherToken)
+          .send(gradeData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.grade).toBe(85);
+        expect(response.body.data.gradePercentage).toBe(85);
+        expect(response.body.data.letterGrade).toBe('B');
+        expect(response.body.data.isRegrade).toBe(false);
+      });
+
+      test('should detect regrading', async () => {
+        // First grade
+        await request(app)
+          .put(`/assignments/submission/${submission1._id}/grade`)
+          .set('Authorization', teacherToken)
+          .send({ grade: 75, feedback: 'First grade' });
+
+        // Regrade
+        const response = await request(app)
+          .put(`/assignments/submission/${submission1._id}/grade`)
+          .set('Authorization', teacherToken)
+          .send({ grade: 85, feedback: 'Updated grade' });
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.isRegrade).toBe(true);
+        expect(response.body.data.previousGrade).toBe(75);
+        expect(response.body.message).toContain('regraded');
+      });
+
+      test('should validate numeric grade format', async () => {
+        const response = await request(app)
+          .put(`/assignments/submission/${submission1._id}/grade`)
+          .set('Authorization', teacherToken)
+          .send({ grade: 'invalid', feedback: 'Invalid grade' });
+
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe('INVALID_GRADE_FORMAT');
+      });
+    });
+
+    describe('Bulk Grading', () => {
+      beforeEach(() => {
+        app.use((req, res, next) => {
+          if (req.headers.authorization === teacherToken) {
+            return mockAuth(teacher)(req, res, next);
+          }
+          next();
+        });
+      });
+
+      test('should bulk grade multiple submissions', async () => {
+        const bulkGradeData = {
+          grades: [
+            {
+              submissionId: submission1._id.toString(),
+              grade: 85,
+              feedback: 'Good work on first assignment'
+            },
+            {
+              submissionId: submission2._id.toString(),
+              grade: 42,
+              feedback: 'Needs improvement'
+            }
+          ]
+        };
+
+        const response = await request(app)
+          .put(`/assignments/assignment/${assignment._id}/bulk-grade`)
+          .set('Authorization', teacherToken)
+          .send(bulkGradeData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.successful).toHaveLength(1); // Only submission1 belongs to assignment
+        expect(response.body.data.failed).toHaveLength(1); // submission2 belongs to different assignment
+      });
+
+      test('should handle validation errors in bulk grading', async () => {
+        const bulkGradeData = {
+          grades: [
+            {
+              submissionId: submission1._id.toString(),
+              grade: 150, // Exceeds point value
+              feedback: 'Too high'
+            },
+            {
+              submissionId: submission1._id.toString(),
+              grade: 85,
+              feedback: 'Valid grade'
+            }
+          ]
+        };
+
+        const response = await request(app)
+          .put(`/assignments/assignment/${assignment._id}/bulk-grade`)
+          .set('Authorization', teacherToken)
+          .send(bulkGradeData);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.successful).toHaveLength(1);
+        expect(response.body.data.failed).toHaveLength(1);
+        expect(response.body.data.failed[0].error).toContain('must be between 0 and 100');
+      });
+
+      test('should require grades array', async () => {
+        const response = await request(app)
+          .put(`/assignments/assignment/${assignment._id}/bulk-grade`)
+          .set('Authorization', teacherToken)
+          .send({});
+
+        expect(response.status).toBe(400);
+        expect(response.body.error.code).toBe('MISSING_GRADES');
+      });
+    });
+
+    describe('Student Grades Retrieval', () => {
+      beforeEach(async () => {
+        // Grade the submissions
+        submission1.grade = 85;
+        submission1.feedback = 'Good work';
+        submission1.gradedAt = new Date();
+        submission1.gradedBy = teacher._id;
+        await submission1.save();
+
+        submission2.grade = 42;
+        submission2.feedback = 'Needs improvement';
+        submission2.gradedAt = new Date();
+        submission2.gradedBy = teacher._id;
+        await submission2.save();
+
+        app.use((req, res, next) => {
+          if (req.headers.authorization === studentToken) {
+            return mockAuth(student)(req, res, next);
+          } else if (req.headers.authorization === teacherToken) {
+            return mockAuth(teacher)(req, res, next);
+          }
+          next();
+        });
+      });
+
+      test('should get student grades as student themselves', async () => {
+        const response = await request(app)
+          .get(`/assignments/student/${student._id}/grades`)
+          .set('Authorization', studentToken);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.student.name).toBe('Test Student');
+        expect(response.body.data.overallStats.totalAssignments).toBe(2);
+        expect(response.body.data.overallStats.averagePercentage).toBeCloseTo(63.5, 1); // (85/100 + 42/50) * 100 / 2
+        expect(response.body.data.courseGrades).toHaveLength(1);
+      });
+
+      test('should get student grades as their teacher', async () => {
+        const response = await request(app)
+          .get(`/assignments/student/${student._id}/grades`)
+          .set('Authorization', teacherToken);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.courseGrades[0].assignments).toHaveLength(2);
+      });
+
+      test('should deny access to other students grades', async () => {
+        const otherStudent = new User({
+          name: 'Other Student',
+          email: 'other@test.com',
+          password: 'password123',
+          role: 'Student',
+          studentId: 'STU004'
+        });
+        await otherStudent.save();
+
+        const response = await request(app)
+          .get(`/assignments/student/${otherStudent._id}/grades`)
+          .set('Authorization', studentToken);
+
+        expect(response.status).toBe(403);
+        expect(response.body.error.code).toBe('ACCESS_DENIED');
+      });
+    });
+
+    describe('Course Gradebook', () => {
+      beforeEach(async () => {
+        // Grade the submissions
+        submission1.grade = 85;
+        submission1.gradedAt = new Date();
+        submission1.gradedBy = teacher._id;
+        await submission1.save();
+
+        app.use((req, res, next) => {
+          if (req.headers.authorization === teacherToken) {
+            return mockAuth(teacher)(req, res, next);
+          }
+          next();
+        });
+      });
+
+      test('should get course gradebook as teacher', async () => {
+        const response = await request(app)
+          .get(`/assignments/course/${course._id}/gradebook`)
+          .set('Authorization', teacherToken);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.course.name).toBe('Test Course');
+        expect(response.body.data.assignments).toHaveLength(2);
+        expect(response.body.data.students).toHaveLength(1);
+        expect(response.body.data.students[0].student.name).toBe('Test Student');
+        expect(response.body.data.courseStats.totalStudents).toBe(1);
+        expect(response.body.data.courseStats.totalAssignments).toBe(2);
+      });
+
+      test('should calculate gradebook statistics correctly', async () => {
+        const response = await request(app)
+          .get(`/assignments/course/${course._id}/gradebook`)
+          .set('Authorization', teacherToken);
+
+        const studentData = response.body.data.students[0];
+        expect(studentData.stats.submittedCount).toBe(2);
+        expect(studentData.stats.gradedCount).toBe(1);
+        expect(studentData.stats.totalPointsPossible).toBe(150); // 100 + 50
+        expect(studentData.stats.totalPointsEarned).toBe(85);
+      });
+
+      test('should deny access to students', async () => {
+        app.use((req, res, next) => {
+          req.user = { id: student._id.toString(), role: 'Student' };
+          next();
+        });
+
+        const response = await request(app)
+          .get(`/assignments/course/${course._id}/gradebook`)
+          .set('Authorization', studentToken);
+
+        expect(response.status).toBe(403);
+        expect(response.body.error.code).toBe('ACCESS_DENIED');
+      });
+    });
+
+    describe('Submission Details', () => {
+      beforeEach(async () => {
+        submission1.grade = 85;
+        submission1.feedback = 'Good work';
+        submission1.gradedAt = new Date();
+        submission1.gradedBy = teacher._id;
+        await submission1.save();
+
+        app.use((req, res, next) => {
+          if (req.headers.authorization === studentToken) {
+            return mockAuth(student)(req, res, next);
+          } else if (req.headers.authorization === teacherToken) {
+            return mockAuth(teacher)(req, res, next);
+          }
+          next();
+        });
+      });
+
+      test('should get submission details as student owner', async () => {
+        const response = await request(app)
+          .get(`/assignments/submission/${submission1._id}`)
+          .set('Authorization', studentToken);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.submissionText).toBe('First submission');
+        expect(response.body.data.grade).toBe(85);
+        expect(response.body.data.gradePercentage).toBe(85);
+        expect(response.body.data.daysLate).toBe(0);
+      });
+
+      test('should get submission details as teacher', async () => {
+        const response = await request(app)
+          .get(`/assignments/submission/${submission1._id}`)
+          .set('Authorization', teacherToken);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.feedback).toBe('Good work');
+      });
+
+      test('should calculate days late for late submissions', async () => {
+        // Create a late submission
+        const lateSubmission = new Submission({
+          assignment: assignment._id,
+          student: student._id,
+          submissionText: 'Late submission',
+          submittedAt: new Date(assignment.dueDate.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days late
+          isLate: true
+        });
+        await lateSubmission.save();
+
+        const response = await request(app)
+          .get(`/assignments/submission/${lateSubmission._id}`)
+          .set('Authorization', studentToken);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.daysLate).toBe(2);
+      });
     });
   });
 
