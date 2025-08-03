@@ -62,7 +62,12 @@
   - Write comprehensive tests for course management features
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 5. Build assignment system with file upload support
+- [x] 5. Build assignment system with file upload support
+
+
+
+
+
   - Implement file upload middleware with validation (type, size, security)
   - Create assignment CRUD endpoints with proper authorization
   - Build assignment submission functionality for students

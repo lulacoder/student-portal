@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const attachmentSchema = new mongoose.Schema({
   name: {
@@ -84,4 +84,4 @@ assignmentSchema.methods.acceptsSubmissions = function() {
   return this.isActive && new Date() <= this.dueDate;
 };
 
-module.exports = mongoose.model('Assignment', assignmentSchema);
+export default mongoose.model('Assignment', assignmentSchema);

@@ -27,10 +27,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/assignments', assignmentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -3,34 +3,51 @@ import mongoose from 'mongoose';
 
 let mongoServer;
 
-// Setup before all tests
-beforeAll(async () => {
-  // Start in-memory MongoDB instance
-  mongoServer = await MongoMemoryServer.create();
+// Export helper functions for individual test files
+export const connectDB = async () => {
+  if (!mongoServer) {
+    mongoServer = await MongoMemoryServer.create();
+  }
   const mongoUri = mongoServer.getUri();
   
-  // Connect to the in-memory database
-  await mongoose.connect(mongoUri);
-});
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(mongoUri);
+  }
+};
 
-// Cleanup after each test
-afterEach(async () => {
-  // Clear all collections
+export const closeDB = async () => {
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+  }
+  
+  if (mongoServer) {
+    await mongoServer.stop();
+    mongoServer = null;
+  }
+};
+
+export const clearDB = async () => {
   const collections = mongoose.connection.collections;
   for (const key in collections) {
     const collection = collections[key];
     await collection.deleteMany({});
   }
+};
+
+// Global setup for all tests (when this file is imported)
+beforeAll(async () => {
+  await connectDB();
+});
+
+// Cleanup after each test
+afterEach(async () => {
+  await clearDB();
 });
 
 // Cleanup after all tests
 afterAll(async () => {
-  // Close database connection
-  await mongoose.connection.dropDatabase();
-  await mongoose.connection.close();
-  
-  // Stop the in-memory MongoDB instance
-  await mongoServer.stop();
+  await closeDB();
 });
 
 // Set test environment variables

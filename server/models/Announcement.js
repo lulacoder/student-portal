@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const announcementSchema = new mongoose.Schema({
   title: {
@@ -140,4 +140,4 @@ announcementSchema.methods.canUserEdit = function(userId, userRole) {
   return this.author.toString() === userId.toString();
 };
 
-module.exports = mongoose.model('Announcement', announcementSchema);
+export default mongoose.model('Announcement', announcementSchema);

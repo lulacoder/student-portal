@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const attachmentSchema = new mongoose.Schema({
   name: {
@@ -137,4 +137,4 @@ submissionSchema.methods.getGradePercentage = async function() {
   return (this.grade / assignment.pointValue) * 100;
 };
 
-module.exports = mongoose.model('Submission', submissionSchema);
+export default mongoose.model('Submission', submissionSchema);
