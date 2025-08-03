@@ -98,6 +98,14 @@ announcementSchema.statics.getAnnouncementsForUser = async function(userId) {
     throw new Error('User not found');
   }
 
+  // Admins can see all announcements
+  if (user.role === 'Admin') {
+    return this.find({ isActive: true })
+      .populate('author', 'name role')
+      .populate('course', 'name')
+      .sort({ priority: -1, createdAt: -1 });
+  }
+
   const query = {
     isActive: true,
     $or: [

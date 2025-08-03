@@ -90,12 +90,18 @@
   - Write tests for grading workflow and grade calculations
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 9.2, 9.3, 9.4_
 
-- [ ] 7. Build announcement system
+- [x] 7. Build announcement system
+
+
+
+
+
+
   - Create course-specific announcement endpoints
   - Implement global announcement functionality for admins
   - Add announcement CRUD operations with proper authorization
   - Build announcement retrieval with chronological ordering
-  - Create announcement controller with role-based permissions
+  - Create announcement controller with ro le-based permissions
   - Write tests for both course and global announcement features
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 12.1, 12.2, 12.3, 12.4_
 
