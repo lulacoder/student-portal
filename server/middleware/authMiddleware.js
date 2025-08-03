@@ -1,5 +1,5 @@
-const { verifyToken, extractTokenFromHeader } = require('../utils/generateToken');
-const User = require('../models/User');
+import { verifyToken, extractTokenFromHeader } from '../utils/generateToken.js';
+import User from '../models/User.js';
 
 /**
  * Middleware to authenticate JWT tokens
@@ -117,7 +117,7 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   authenticate,
   authorize,
   optionalAuth

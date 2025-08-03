@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const materialSchema = new mongoose.Schema({
   name: {
@@ -103,4 +103,4 @@ courseSchema.methods.unenrollStudent = function(studentId) {
   );
 };
 
-module.exports = mongoose.model('Course', courseSchema);
+export default mongoose.model('Course', courseSchema);
