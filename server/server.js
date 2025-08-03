@@ -1,18 +1,17 @@
-const path = require('path');
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+import path from 'path';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Robustly load environment variables regardless of CWD
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-// Safe diagnostics (masked)
-const nodeEnv = process.env.NODE_ENV || 'undefined';
-const atlasUriPresent = Boolean(process.env.ATLAS_URI);
-console.log(`Environment: ${nodeEnv}`);
-console.log(`ATLAS_URI present: ${atlasUriPresent ? 'yes' : 'no'}`);
-
-const { connectDB } = require('./config/db');
+import { connectDB } from './config/db.js';
 
 // Connect to MongoDB
 connectDB();
@@ -25,7 +24,11 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

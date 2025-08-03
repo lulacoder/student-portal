@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const connectDB = async () => {
     try {
@@ -12,13 +12,4 @@ const connectDB = async () => {
     }
 };
 
-const disconnectDB = async () => {
-    try {
-        await mongoose.connection.close();
-        console.log('MongoDB Disconnected');
-    } catch (error) {
-        console.error('Database disconnection error:', error.message);
-    }
-};
-
-module.exports = { connectDB, disconnectDB };
+export { connectDB };
