@@ -6,7 +6,7 @@ const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
   };
 
   return (
-    <div className="loading-container">
+    <div className="loading-container" data-testid="loading-spinner">
       <div className={`spinner ${sizeClasses[size]}`}>
         <div className="spinner-circle"></div>
       </div>

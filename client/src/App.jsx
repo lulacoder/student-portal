@@ -9,6 +9,11 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentCourses from './pages/StudentCourses';
+import StudentAssignments from './pages/StudentAssignments';
+import AssignmentDetail from './pages/AssignmentDetail';
+import CourseCatalog from './pages/CourseCatalog';
+import CourseDetail from './pages/CourseDetail';
 import TeacherDashboard from './pages/TeacherDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import NotFoundPage from './pages/NotFoundPage';
@@ -32,8 +37,11 @@ function App() {
                 <ProtectedRoute requiredRole="Student">
                   <Routes>
                     <Route path="dashboard" element={<StudentDashboard />} />
-                    <Route path="courses" element={<div>Student Courses (Coming Soon)</div>} />
-                    <Route path="assignments" element={<div>Student Assignments (Coming Soon)</div>} />
+                    <Route path="courses" element={<StudentCourses />} />
+                    <Route path="courses/:courseId" element={<CourseDetail />} />
+                    <Route path="catalog" element={<CourseCatalog />} />
+                    <Route path="assignments" element={<StudentAssignments />} />
+                    <Route path="assignments/:assignmentId" element={<AssignmentDetail />} />
                     <Route path="grades" element={<div>Student Grades (Coming Soon)</div>} />
                     <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
                   </Routes>
