@@ -19,6 +19,7 @@
   color: white;
   padding: 1rem 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-container {
@@ -518,7 +519,6 @@
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
 }
-
 .course-list-loading,
 .course-list-error,
 .course-list-empty {
@@ -776,7 +776,6 @@
   align-items: center;
   margin-bottom: 1.5rem;
 }
-
 .section-header h2 {
   color: var(--primary-color);
   margin: 0;
@@ -1046,7 +1045,6 @@
 .assignment-title-section {
   margin-top: 1rem;
 }
-
 .assignment-title-section h1 {
   color: #2c3e50;
   margin-bottom: 0.5rem;
@@ -1314,7 +1312,6 @@
   flex-direction: column;
   gap: 0.5rem;
 }
-
 .selected-files .file-item {
   display: flex;
   justify-content: space-between;
@@ -1579,7 +1576,6 @@
   color: #6c757d;
   font-size: 0.9rem;
 }
-
 /* Responsive Design for Progress Component */
 @media (max-width: 768px) {
   .stats-grid {
@@ -1832,7 +1828,6 @@
   flex-direction: column;
   gap: 0.5rem;
 }
-
 .file-item {
   display: flex;
   justify-content: space-between;
@@ -2081,7 +2076,6 @@
   align-items: center;
   margin-bottom: 1.5rem;
 }
-
 .progress-header h3,
 .progress-header h4 {
   color: var(--primary-color);
@@ -2335,7 +2329,6 @@
   color: var(--danger-color);
   margin-bottom: 1rem;
 }
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .assignment-content {
