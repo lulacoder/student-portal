@@ -133,7 +133,14 @@
   - Write tests for authentication components and flows
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3_
 
-- [ ] 10. Build student dashboard and course enrollment interface
+- [x] 10. Build student dashboard and course enrollment interface
+
+
+
+
+
+
+
   - Create student dashboard with enrolled courses display
   - Implement course catalog with enrollment functionality
   - Build course detail view with materials and assignments
@@ -142,7 +149,13 @@
   - Write tests for student course interaction workflows
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 11. Implement assignment submission interface for students
+- [x] 11. Implement assignment submission interface for students
+
+
+
+
+
+
   - Create assignment list view with due dates and status
   - Build assignment detail page with submission form
   - Implement file upload component with drag-and-drop
