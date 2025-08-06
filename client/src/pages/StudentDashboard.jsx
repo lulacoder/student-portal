@@ -1,47 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { getEnrolledCourses } from '../services/courseService';
-import LoadingSpinner from '../components/LoadingSpinner';
-import AssignmentProgress from '../components/AssignmentProgress';
 import { getEnrolledCourses } from '../services/courseService';
 import LoadingSpinner from '../components/LoadingSpinner';
 import AssignmentProgress from '../components/AssignmentProgress';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await getEnrolledCourses();
-      setCourses(response.data || []);
-    } catch (err) {
-      setError(err.error?.message || err.message || 'Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="dashboard-loading">
-        <LoadingSpinner />
-        <p>Loading dashboard...</p>
-      </div>
-    );
-  }
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,53 +51,34 @@ const StudentDashboard = () => {
         </div>
       )}
       
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-      
       <div className="dashboard-content">
-        <AssignmentProgress />
-        
         <AssignmentProgress />
         
         <div className="dashboard-grid">
           <div className="dashboard-card clickable" onClick={() => navigate('/student/courses')}>
-          <div className="dashboard-card clickable" onClick={() => navigate('/student/courses')}>
             <h3>My Courses</h3>
             <p>View and manage your enrolled courses</p>
             <div className="card-stats">
-              <span className="stat-number">{courses.length}</span>
               <span className="stat-number">{courses.length}</span>
               <span className="stat-label">Enrolled Courses</span>
             </div>
             <div className="card-action">
               <button className="btn btn-sm btn-primary">View Courses</button>
             </div>
-            <div className="card-action">
-              <button className="btn btn-sm btn-primary">View Courses</button>
-            </div>
           </div>
           
-          <div className="dashboard-card clickable" onClick={() => navigate('/student/assignments')}>
           <div className="dashboard-card clickable" onClick={() => navigate('/student/assignments')}>
             <h3>Assignments</h3>
             <p>Check upcoming assignments and deadlines</p>
             <div className="card-stats">
-              <span className="stat-number">-</span>
               <span className="stat-number">-</span>
               <span className="stat-label">Pending Assignments</span>
             </div>
             <div className="card-action">
               <button className="btn btn-sm btn-primary">View Assignments</button>
             </div>
-            <div className="card-action">
-              <button className="btn btn-sm btn-primary">View Assignments</button>
-            </div>
           </div>
           
-          <div className="dashboard-card clickable" onClick={() => navigate('/student/grades')}>
           <div className="dashboard-card clickable" onClick={() => navigate('/student/grades')}>
             <h3>Grades</h3>
             <p>View your academic progress and grades</p>
@@ -143,16 +89,12 @@ const StudentDashboard = () => {
             <div className="card-action">
               <button className="btn btn-sm btn-primary">View Grades</button>
             </div>
-            <div className="card-action">
-              <button className="btn btn-sm btn-primary">View Grades</button>
-            </div>
           </div>
           
           <div className="dashboard-card">
             <h3>Announcements</h3>
             <p>Stay updated with course announcements</p>
             <div className="card-stats">
-              <span className="stat-number">-</span>
               <span className="stat-number">-</span>
               <span className="stat-label">New Announcements</span>
             </div>
