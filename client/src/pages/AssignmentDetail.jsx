@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAssignment, submitAssignment, downloadFile } from '../services/assignmentService.js';
-import { useAuth } from '../hooks/useAuth.js';
+
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import FileUpload from '../components/FileUpload.jsx';
 
@@ -15,11 +15,10 @@ const AssignmentDetail = () => {
   const [success, setSuccess] = useState('');
   const { assignmentId } = useParams();
   const navigate = useNavigate();
-  useAuth();
 
   useEffect(() => {
     fetchAssignment();
-  }, [assignmentId]);
+  }, [assignmentId, fetchAssignment]);
 
   const fetchAssignment = async () => {
     try {
